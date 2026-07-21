@@ -31,6 +31,7 @@ export default function Companies() {
         <div
           className="
           flex
+          w-max
           gap-6
           whitespace-nowrap
           animate-[marquee_22s_linear_infinite]
