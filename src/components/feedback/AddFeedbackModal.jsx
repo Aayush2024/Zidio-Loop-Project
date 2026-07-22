@@ -2,12 +2,10 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 
-import { addFeedback } from "../../services/feedbackService";
-
 const initialForm = {
   customer: "",
-  message: "",
-  category: "Product",
+  feedback: "",
+  category: "Delivery",
   sentiment: "Positive",
   status: "Pending",
 };
@@ -15,10 +13,9 @@ const initialForm = {
 export default function AddFeedbackModal({
   open,
   onClose,
-  onSuccess,
+  onSave,
 }) {
   const [form, setForm] = useState(initialForm);
-  const [loading, setLoading] = useState(false);
 
   if (!open) return null;
 
@@ -29,37 +26,21 @@ export default function AddFeedbackModal({
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = () => {
+  if (
+    !form.customer.trim() ||
+    !form.feedback.trim()
+  ) {
+    toast.error("Please fill all required fields.");
+    return;
+  }
 
-    if (
-      !form.customer.trim() ||
-      !form.message.trim()
-    ) {
-      toast.error("Please fill all required fields.");
-      return;
-    }
+  onSave(form);
 
-    try {
-      setLoading(true);
+  toast.success("Feedback added successfully!");
 
-      await addFeedback(form);
-
-      toast.success("Feedback added successfully.");
-
-      setForm(initialForm);
-
-      onSuccess?.();
-
-      onClose();
-    } catch (error) {
-      console.error(error);
-
-      toast.error("Unable to add feedback.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  setForm(initialForm);
+};
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
@@ -70,7 +51,7 @@ export default function AddFeedbackModal({
 
         <div className="flex items-center justify-between border-b border-white/10 p-6">
 
-          <h2 className="text-2xl font-bold">
+          <h2 className="text-2xl font-semibold">
             Add Feedback
           </h2>
 
@@ -85,14 +66,10 @@ export default function AddFeedbackModal({
 
         {/* Form */}
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-5 p-6"
-        >
+        <div className="space-y-5 p-6">
 
           <div>
-
-            <label className="mb-2 block text-sm">
+            <label className="mb-2 block text-sm text-gray-300">
               Customer Name
             </label>
 
@@ -100,32 +77,31 @@ export default function AddFeedbackModal({
               name="customer"
               value={form.customer}
               onChange={handleChange}
-              className="w-full rounded-xl border border-white/10 bg-[#151F1F] p-3 outline-none focus:border-cyan-500"
+              placeholder="Enter customer name"
+              className="w-full rounded-xl border border-white/10 bg-[#141C1C] px-4 py-3 outline-none focus:border-cyan-400"
             />
-
           </div>
 
           <div>
-
-            <label className="mb-2 block text-sm">
+            <label className="mb-2 block text-sm text-gray-300">
               Feedback
             </label>
 
             <textarea
               rows={4}
-              name="message"
-              value={form.message}
+              name="feedback"
+              value={form.feedback}
               onChange={handleChange}
-              className="w-full rounded-xl border border-white/10 bg-[#151F1F] p-3 outline-none focus:border-cyan-500"
+              placeholder="Write customer feedback..."
+              className="w-full rounded-xl border border-white/10 bg-[#141C1C] px-4 py-3 outline-none focus:border-cyan-400"
             />
-
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
 
             <div>
 
-              <label className="mb-2 block text-sm">
+              <label className="mb-2 block text-sm text-gray-300">
                 Category
               </label>
 
@@ -133,19 +109,19 @@ export default function AddFeedbackModal({
                 name="category"
                 value={form.category}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-white/10 bg-[#151F1F] p-3"
+                className="w-full rounded-xl border border-white/10 bg-[#141C1C] px-4 py-3"
               >
-                <option>Product</option>
                 <option>Delivery</option>
                 <option>Payment</option>
                 <option>Support</option>
+                <option>Product</option>
               </select>
 
             </div>
 
             <div>
 
-              <label className="mb-2 block text-sm">
+              <label className="mb-2 block text-sm text-gray-300">
                 Sentiment
               </label>
 
@@ -153,7 +129,7 @@ export default function AddFeedbackModal({
                 name="sentiment"
                 value={form.sentiment}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-white/10 bg-[#151F1F] p-3"
+                className="w-full rounded-xl border border-white/10 bg-[#141C1C] px-4 py-3"
               >
                 <option>Positive</option>
                 <option>Neutral</option>
@@ -164,7 +140,7 @@ export default function AddFeedbackModal({
 
             <div>
 
-              <label className="mb-2 block text-sm">
+              <label className="mb-2 block text-sm text-gray-300">
                 Status
               </label>
 
@@ -172,7 +148,7 @@ export default function AddFeedbackModal({
                 name="status"
                 value={form.status}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-white/10 bg-[#151F1F] p-3"
+                className="w-full rounded-xl border border-white/10 bg-[#141C1C] px-4 py-3"
               >
                 <option>Pending</option>
                 <option>Resolved</option>
@@ -183,27 +159,27 @@ export default function AddFeedbackModal({
 
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+        </div>
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-white/10 px-5 py-2 hover:bg-white/10"
-            >
-              Cancel
-            </button>
+        {/* Footer */}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-xl bg-cyan-500 px-6 py-2 font-semibold text-black transition hover:bg-cyan-400 disabled:opacity-50"
-            >
-              {loading ? "Saving..." : "Save Feedback"}
-            </button>
+        <div className="flex justify-end gap-3 border-t border-white/10 p-6">
 
-          </div>
+          <button
+            onClick={onClose}
+            className="rounded-xl border border-white/10 px-5 py-2 hover:bg-white/10"
+          >
+            Cancel
+          </button>
 
-        </form>
+           <button
+            onClick={handleSubmit}
+            className="rounded-xl bg-cyan-500 px-6 py-2 font-medium text-black hover:bg-cyan-400"
+           >
+            Save Feedback
+           </button>
+
+        </div>
 
       </div>
 
